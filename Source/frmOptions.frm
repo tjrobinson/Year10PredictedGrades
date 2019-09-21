@@ -247,6 +247,16 @@ End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
 
-frmMenu.Show
+'show response dialog
+gintResponse = MsgBox("Save changes?", 36, "Year 10 Predicted Grades")
+
+'decide on action to take
+If gintResponse = vbYes Then
+    Call SaveData(gstrInputDatabaseLocation)
+    Call ExportData(gstrOutputDatabaseLocation)
+    End
+Else
+    End
+End If
 
 End Sub

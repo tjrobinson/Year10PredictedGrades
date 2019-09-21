@@ -99,7 +99,7 @@ prgLoad.Visible = True
 With flexView
     .Clear
     .Cols = 6
-    .Rows = 2201
+    .Rows = gintNumberOfRecords + 1
     .FixedCols = 0
 End With
 
@@ -121,7 +121,7 @@ flexView.Col = 5
 flexView.Text = "Effort"
 
 'display data on grid
-For lp1 = 1 To 2200
+For lp1 = 1 To gintNumberOfRecords
 
     flexView.Row = lp1
     flexView.Col = 0
@@ -163,7 +163,7 @@ prgLoad.Visible = True
 With flexView
     .Clear
     .Cols = 32
-    .Rows = 221
+    .Rows = (gintNumberOfRecords / 10) + 1
     .FixedCols = 1
 End With
 
@@ -237,7 +237,7 @@ flexView.Col = 31
 flexView.Text = "Effort (10)"
 
 'display data on grid
-For lp1 = 1 To 220
+For lp1 = 1 To (gintNumberOfRecords / 10)
     flexView.Row = lp1
     flexView.Col = 0
     flexView.Text = gstrOutputName(lp1)
@@ -321,7 +321,7 @@ Private Sub Form_Load()
 'find output variables
 cnt2 = 1
 
-For lp3 = 1 To 2200 Step 10
+For lp3 = 1 To gintNumberOfRecords Step 10
 
     gstrOutputCandidateNumber(cnt2) = gstrInputCandidateNumber(lp3)
     gstrOutputForename(cnt2) = gstrInputForename(lp3)
@@ -344,7 +344,7 @@ For lp3 = 1 To 2200 Step 10
 
 Next lp3
 
-For lp3 = 1 To 220
+For lp3 = 1 To (gintNumberOfRecords / 10)
     gstrOutputName(lp3) = gstrOutputForename(lp3) & " " & gstrOutputSurname(lp3)
 Next lp3
 
@@ -352,6 +352,16 @@ End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
 
-frmMenu.Show
+'show response dialog
+gintResponse = MsgBox("Save changes?", 36, "Year 10 Predicted Grades")
+
+'decide on action to take
+If gintResponse = vbYes Then
+    Call SaveData(gstrInputDatabaseLocation)
+    Call ExportData(gstrOutputDatabaseLocation)
+    End
+Else
+    End
+End If
 
 End Sub

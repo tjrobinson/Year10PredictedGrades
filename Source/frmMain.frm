@@ -172,10 +172,10 @@ Begin VB.Form frmMain
       TabCaption(1)   =   "Input by su&bject"
       TabPicture(1)   =   "frmMain.frx":047A
       Tab(1).ControlEnabled=   0   'False
-      Tab(1).Control(0)=   "lstStudent(1)"
-      Tab(1).Control(1)=   "lstSubject(1)"
-      Tab(1).Control(2)=   "lblStudent(4)"
-      Tab(1).Control(3)=   "lblSubject(2)"
+      Tab(1).Control(0)=   "lblSubject(2)"
+      Tab(1).Control(1)=   "lblStudent(4)"
+      Tab(1).Control(2)=   "lstSubject(1)"
+      Tab(1).Control(3)=   "lstStudent(1)"
       Tab(1).ControlCount=   4
       Begin VB.TextBox txtGroup 
          Alignment       =   2  'Center
@@ -489,9 +489,9 @@ gintResponse = MsgBox("Save changes?", 36, "Year 10 Predicted Grades")
 If gintResponse = vbYes Then
     Call SaveData(gstrInputDatabaseLocation)
     Call ExportData(gstrOutputDatabaseLocation)
-    frmMenu.Show
+    End
 Else
-    frmMenu.Show
+    End
 End If
 
 End Sub
@@ -577,7 +577,7 @@ Select Case Index
         gstrWantedSubjectCode = lstSubject(1).Text
 
         'begin loop
-        For lp1 = 1 To 2200
+        For lp1 = 1 To gintNumberOfRecords
             Select Case gstrInputSubjectCode(lp1)
                 Case gstrWantedSubjectCode
                     lstStudent(1).AddItem gstrInputCandidateNumber(lp1) & " - " & gstrInputSurname(lp1) & ", " & gstrInputForename(lp1)

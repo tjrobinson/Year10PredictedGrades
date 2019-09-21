@@ -8,22 +8,22 @@ Global lp1, lp2, lp3 As Integer
 Global cnt1, cnt2 As Integer
 
 'input arrays
-Global gstrInputSubjectCode(1 To 2200) As String
-Global gstrInputForename(1 To 2200) As String
-Global gstrInputSurname(1 To 2200) As String
-Global gstrInputCandidateNumber(1 To 2200) As String
-Global gstrInputGrade(1 To 2200) As String
-Global gstrInputEffort(1 To 2200) As String
-Global gstrInputSubjectName(1 To 2200) As String
+Global gstrInputSubjectCode() As String
+Global gstrInputForename() As String
+Global gstrInputSurname() As String
+Global gstrInputCandidateNumber() As String
+Global gstrInputGrade() As String
+Global gstrInputEffort() As String
+Global gstrInputSubjectName() As String
 
 'output arrays
-Global gstrOutputName(1 To 220) As String
-Global gstrOutputSurname(1 To 220) As String
-Global gstrOutputForename(1 To 220) As String
-Global gstrOutputCandidateNumber(1 To 220) As String
-Global gstrOutputSubject(1 To 10, 1 To 220) As String
-Global gstrOutputGrade(1 To 10, 1 To 220) As String
-Global gstrOutputEffort(1 To 10, 1 To 220) As String
+Global gstrOutputName() As String
+Global gstrOutputSurname() As String
+Global gstrOutputForename() As String
+Global gstrOutputCandidateNumber() As String
+Global gstrOutputSubject() As String
+Global gstrOutputGrade() As String
+Global gstrOutputEffort() As String
 
 'location variables
 Global gstrSettingsLocation As String
@@ -33,10 +33,12 @@ Global gstrInputDatabaseLocation As String
 Global gstrOutputDatabaseLocation As String
 Global gstrSubjectListLocation As String
 Global gstrBasicDatabaseLocation As String
+Global gstrAppPath As String
 
 'pointer variables
 Global gintCurrentStudent As Integer
 Global gintSubjectModifier As Integer
+Global gstrSelectedSubject As String
 
 'miscellaneous
 Global gintCurrentTab As Integer
@@ -44,10 +46,8 @@ Global gintResponse As String
 Global gstrWantedSubjectCode As String
 Global gstrWantedStudent As String
 Global gstrLargeSubjectList(1 To 102) As String
-Global gstrSelectedSubject As String
 Global mintErrorAction As Integer
 Global gblnListClear As Boolean
-Global gstrAppPath As String
 Global gintNumberOfRecords As Integer
 Global gintNumberOfFields As Integer
 
@@ -103,7 +103,7 @@ Public Sub CreateStudentList(val As String)
 
 'create list of student details:
 Open val For Output As #1
-    For lp1 = 1 To 2200 Step 10
+    For lp1 = 1 To gintNumberOfRecords Step 10
         Print #1, gstrInputCandidateNumber(lp1); ","; gstrInputForename(lp1); ","; gstrInputSurname(lp1)
     Next lp1
 Close #1
@@ -123,13 +123,14 @@ Open gstrSettingsLocation For Binary As #1
 Close
 
 'check settings location is correct
-If Exists(gstrSettingsLocation) = False Or intSettingsFileLength < 5 Then
+If Exists(gstrSettingsLocation) = False Or intSettingsFileLength < 6 Then
 
     gstrOutputDocumentLocation = gstrAppPath & "grades.doc"
     gstrInputDatabaseLocation = gstrAppPath & "input.csv"
     gstrOutputDatabaseLocation = gstrAppPath & "output.csv"
     gstrSubjectListLocation = gstrAppPath & "subjects.csv"
     gstrWordLocation = WordLocation()
+    gstrBasicDatabaseLocation = gstrAppPath & "studentdata.csv"
     
     'create settings file
     Open gstrSettingsLocation For Output As #1
@@ -138,6 +139,7 @@ If Exists(gstrSettingsLocation) = False Or intSettingsFileLength < 5 Then
         Print #1, gstrOutputDatabaseLocation
         Print #1, gstrSubjectListLocation
         Print #1, gstrWordLocation
+        Print #1, gstrBasicDatabaseLocation
     Close #1
     
 Else
@@ -149,6 +151,7 @@ Else
         Input #1, gstrOutputDatabaseLocation
         Input #1, gstrSubjectListLocation
         Input #1, gstrWordLocation
+        Input #1, gstrBasicDatabaseLocation
     Close #1
 
 End If
@@ -204,6 +207,7 @@ Open gstrSettingsLocation For Output As #1
     Print #1, frmOptions.txtOutputDatabaseLocation.Text
     Print #1, gstrSubjectListLocation
     Print #1, gstrWordLocation
+    Print #1, gstrBasicDatabaseLocation
 Close #1
 
 End Sub
@@ -215,7 +219,7 @@ frmMain.staMain.SimpleText = "Importing data from " & val & "..."
 
 'open file
 Open val For Input As #1
-    For cnt1 = 1 To 2200
+    For cnt1 = 1 To gintNumberOfRecords
         Input #1, gstrInputSubjectCode(cnt1), gstrInputSurname(cnt1), gstrInputForename(cnt1), gstrInputCandidateNumber(cnt1), gstrInputGrade(cnt1), gstrInputEffort(cnt1)
     Next cnt1
 Close #1
@@ -238,7 +242,7 @@ Public Sub ListStudents()
 frmMain.lstStudent(0).Clear
 
 'display list of all students
-For lp1 = 1 To 2200 Step 10
+For lp1 = 1 To gintNumberOfRecords Step 10
     frmMain.lstStudent(0).AddItem gstrInputCandidateNumber(lp1) & " - " & gstrInputSurname(lp1) & ", " & gstrInputForename(lp1)
 Next lp1
 
@@ -251,8 +255,15 @@ frmMain.staMain.SimpleText = "Saving " & val & "..."
 
 'open specified file to export data
 Open val For Output As #1
-    For cnt1 = 1 To 2200
+    For cnt1 = 1 To gintNumberOfRecords
         Print #1, gstrInputSubjectCode(cnt1); ","; gstrInputSurname(cnt1); ","; gstrInputForename(cnt1); ","; gstrInputCandidateNumber(cnt1); ","; gstrInputGrade(cnt1); ","; gstrInputEffort(cnt1) 'write data from arrays to disk
+    Next cnt1
+Close #1
+
+'open specified file to export data
+Open val For Input As #1
+    For cnt1 = 1 To gintNumberOfRecords
+        Input #1, gstrInputSubjectCode(cnt1), gstrInputSurname(cnt1), gstrInputForename(cnt1), gstrInputCandidateNumber(cnt1), gstrInputGrade(cnt1), gstrInputEffort(cnt1) 'write data from arrays to disk
     Next cnt1
 Close #1
 
@@ -306,7 +317,7 @@ End Sub
 Public Sub WantedStudent(val As String)
 
 'search input database for candidate number
-For lp1 = 1 To 2200 Step 10
+For lp1 = 1 To gintNumberOfRecords Step 10
     Select Case gstrInputCandidateNumber(lp1)
         Case val
             gintCurrentStudent = lp1
@@ -317,12 +328,13 @@ End Sub
 
 Public Sub ListAllSubjects(val As String)
 
-'open data file containing subject list
+cnt1 = 0
 Open val For Input As #1
-    For lp1 = 1 To 102
+    While Not EOF(1)
+        cnt1 = cnt1 + 1
         Input #1, gstrLargeSubjectList(lp1)
         frmMain.lstSubject(1).AddItem gstrLargeSubjectList(lp1)
-    Next lp1
+    Wend
 Close #1
 
 End Sub
@@ -336,7 +348,7 @@ frmMain.staMain.SimpleText = "Exporting to " & val1 & "..."
 cnt2 = 1
 
 'enter the main details
-For lp3 = 1 To 2200 Step 10
+For lp3 = 1 To gintNumberOfRecords Step 10
 
 gstrOutputCandidateNumber(cnt2) = gstrInputCandidateNumber(lp3)
 gstrOutputForename(cnt2) = gstrInputForename(lp3)
@@ -365,7 +377,7 @@ Open val1 For Output As #1
     Print #1, "Candidate Number"; ","; "Name"; ","; "Subject 1"; ","; "Grade 1"; ","; "Effort 1"; ","; "Subject 2"; ","; "Grade 2"; ","; "Effort 2"; ","; "Subject 3"; ","; "Grade 3"; ","; "Effort 3"; ","; "Subject 4"; ","; "Grade 4"; ","; "Effort 4"; ","; "Subject 5"; ","; "Grade 5"; ","; "Effort 5"; ","; "Subject 6"; ","; "Grade 6"; ","; "Effort 6"; ","; "Subject 7"; ","; "Grade 7"; ","; "Effort 7"; ","; "Subject 8"; ","; "Grade 8"; ","; "Effort 8"; ","; "Subject 9"; ","; "Grade 9"; ","; "Effort 9"; ","; "Subject 10"; ","; "Grade 10"; ","; "Effort 10"
     
     'export data
-    For lp3 = 1 To 220
+    For lp3 = 1 To (gintNumberOfRecords / 10)
         gstrOutputName(lp3) = gstrOutputForename(lp3) & " " & gstrOutputSurname(lp3)
         Print #1, gstrOutputCandidateNumber(lp3); ","; gstrOutputName(lp3); ","; gstrOutputSubject(1, lp3); ","; gstrOutputGrade(1, lp3); ","; gstrOutputEffort(1, lp3); ","; gstrOutputSubject(2, lp3); ","; gstrOutputGrade(2, lp3); ","; gstrOutputEffort(2, lp3); ","; gstrOutputSubject(3, lp3); ","; gstrOutputGrade(3, lp3); ","; gstrOutputEffort(3, lp3); ","; gstrOutputSubject(4, lp3); ","; gstrOutputGrade(4, lp3); ","; gstrOutputEffort(4, lp3); ","; gstrOutputSubject(5, lp3); ","; gstrOutputGrade(5, lp3); ","; gstrOutputEffort(5, lp3); ","; gstrOutputSubject(6, lp3); ","; gstrOutputGrade(6, lp3); ","; gstrOutputEffort(6, lp3); ","; gstrOutputSubject(7, lp3); ","; gstrOutputGrade(7, lp3); ","; gstrOutputEffort(7, lp3); ","; gstrOutputSubject(8, lp3); ","; gstrOutputGrade(8, lp3); ","; gstrOutputEffort(8, lp3); ","; gstrOutputSubject(9, lp3); ","; gstrOutputGrade(9, lp3); ","; gstrOutputEffort(9, lp3); ","; gstrOutputSubject(10, lp3); ","; gstrOutputGrade(10, lp3); ","; gstrOutputEffort(10, lp3)
     Next lp3

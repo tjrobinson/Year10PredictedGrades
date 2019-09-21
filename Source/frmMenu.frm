@@ -73,7 +73,7 @@ Begin VB.Form frmMenu
       CancelError     =   -1  'True
       DefaultExt      =   "*.csv"
       DialogTitle     =   "Student Database Location"
-      FileName        =   "input.csv"
+      FileName        =   "studentdata.csv"
       Filter          =   "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
       Flags           =   38916
    End
@@ -265,7 +265,7 @@ Private Sub cmdPrint_Click()
 
 'append filename to end
 Dim strFullWordPath As String
-strFullWordPath = gstrWordLocation & " " & gstrOutputDocumentLocation
+strFullWordPath = gstrWordLocation & " " & Chr(34) & gstrOutputDocumentLocation & Chr(34)
 
 'open letter.doc with Microsoft Word
 Call Shell(strFullWordPath, vbMaximizedFocus)
@@ -282,15 +282,18 @@ End Sub
 
 Private Sub Form_Load()
 
+
+'append extra character if running from the root of a drive
 If Len(App.Path) < 4 Then
     gstrAppPath = App.Path & ""
 Else
     gstrAppPath = App.Path & "\"
 End If
 
+
 Call LoadSettings
 
-If Exists(gstrInputDatabaseLocation) = False Then
+If Exists(gstrInputDatabaseLocation) = False Or Exists(gstrBasicDatabaseLocation) = False Then
     
     MsgBox "You appear to be running this program for the first time. Please find the student database file you wish to use using the dialog box provided.", vbInformation, "Year 10 Predicted Grades"
     
@@ -300,7 +303,7 @@ If Exists(gstrInputDatabaseLocation) = False Then
     gstrBasicDatabaseLocation = dlgBasicDatabaseLocation.filename
     
     On Error Resume Next
-
+    
     Call DatabaseSize(gstrBasicDatabaseLocation)
     
     Select Case gintNumberOfFields
@@ -310,8 +313,10 @@ If Exists(gstrInputDatabaseLocation) = False Then
         MsgBox "Student database is corrupt.", vbCritical, "Year 10 Predicted Grades"
         End
     End Select
-    
+
 End If
+
+Call DatabaseSize(gstrInputDatabaseLocation)
 
 Call CheckSettings
 
@@ -322,7 +327,26 @@ Open gstrSettingsLocation For Output As #1
     Print #1, gstrOutputDatabaseLocation
     Print #1, gstrSubjectListLocation
     Print #1, gstrWordLocation
+    Print #1, gstrBasicDatabaseLocation
 Close #1
+
+'resize input arrays
+ReDim gstrInputSubjectCode(1 To gintNumberOfRecords) As String
+ReDim gstrInputForename(1 To gintNumberOfRecords) As String
+ReDim gstrInputSurname(1 To gintNumberOfRecords) As String
+ReDim gstrInputCandidateNumber(1 To gintNumberOfRecords) As String
+ReDim gstrInputGrade(1 To gintNumberOfRecords) As String
+ReDim gstrInputEffort(1 To gintNumberOfRecords) As String
+ReDim gstrInputSubjectName(1 To gintNumberOfRecords) As String
+
+'resize output arrays
+ReDim gstrOutputName(1 To (gintNumberOfRecords / 10)) As String
+ReDim gstrOutputSurname(1 To (gintNumberOfRecords / 10)) As String
+ReDim gstrOutputForename(1 To (gintNumberOfRecords / 10)) As String
+ReDim gstrOutputCandidateNumber(1 To (gintNumberOfRecords / 10)) As String
+ReDim gstrOutputSubject(1 To 10, 1 To (gintNumberOfRecords / 10)) As String
+ReDim gstrOutputGrade(1 To 10, 1 To (gintNumberOfRecords / 10)) As String
+ReDim gstrOutputEffort(1 To 10, 1 To (gintNumberOfRecords / 10)) As String
 
 'select data source and import
 Call LoadData(gstrInputDatabaseLocation)
